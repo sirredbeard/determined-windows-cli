@@ -1,0 +1,105 @@
+name: Build Determined CLI
+
+on:
+  push:
+  schedule:
+    - cron: '0 0 * * *'  # Run every 24 hours
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      LATEST_TAG: ""
+      SKIP: "true"
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Check for new release
+      id: check_release
+      run: |
+        $latestDetermined = Invoke-RestMethod -Uri https://api.github.com/repos/determined-ai/determined/releases/latest
+        Write-Host "Latest Determined release is $($latestDetermined.tag_name)"
+        try {
+          $latestThisRepo = Invoke-RestMethod -Uri https://api.github.com/repos/${{ github.repository }}/releases/latest
+          Write-Host "Latest release for this repository is $($latestThisRepo.tag_name)"
+        } catch {
+          Write-Host "No release found for this repository"
+          $latestThisRepo = $null
+        }
+        if ($null -eq $latestThisRepo) {
+          Write-Host "First run"
+          echo "SKIP=false" >> $env:GITHUB_ENV
+        } elseif ($latestThisRepo.tag_name -eq $latestDetermined.tag_name) {
+          Write-Host "No new release"
+          echo "SKIP=true" >> $env:GITHUB_ENV
+        } else {
+          Write-Host "New release found"
+          echo "SKIP=false" >> $env:GITHUB_ENV
+        }
+        echo "LATEST_TAG=$($latestDetermined.tag_name)"
+        echo "LATEST_TAG=$($latestDetermined.tag_name)" >> $env:GITHUB_ENV
+      shell: powershell  
+
+    - name: Clone and checkout new release
+      if: env.SKIP != 'true'
+      run: |
+        git clone https://github.com/determined-ai/determined.git
+        Set-Location -Path determined
+        Write-Host "Checking out $($env:LATEST_TAG)"
+        git checkout ${{ env.LATEST_TAG }}
+      shell: powershell
+
+    - name: Install dependencies
+      if: env.SKIP != 'true'
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+      shell: powershell        
+
+    - name: Build executable
+      if: env.SKIP != 'true'
+      run: |
+        Set-Location -Path determined/harness/determined/cli
+        pyinstaller --name det.exe __main__.py
+      shell: powershell
+
+    - name: Create zip file
+      if: env.SKIP != 'true'
+      run: |
+        Set-Location -Path determined/harness/determined/cli/dist/det.exe/
+        Compress-Archive -Path * -DestinationPath determined-cli.zip
+      shell: powershell
+
+    - name: Create GitHub Release
+      id: create_release
+      if: env.SKIP != 'true'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.LATEST_TAG }}
+        release_name: Release ${{ env.LATEST_TAG }}
+        body: New Determined AI Windows CLI build
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      if: env.SKIP != 'true'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: determined/harness/determined/cli/dist/det.exe/determined-cli.zip
+        asset_name: determined-cli.zip
+        asset_content_type: application/zip        
