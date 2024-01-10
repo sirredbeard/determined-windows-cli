@@ -11,7 +11,7 @@ This project is primarily at GitHub Actions workflow that:
 
 ## Installation
 
-PRs for inclusion in [winget](https://github.com/microsoft/winget-pkgs/pull/133503) and [Scoop](https://github.com/ScoopInstaller/Extras/pull/12583) are pending.
+PRs for inclusion in [winget](https://github.com/microsoft/winget-pkgs/pull/133585) and [Scoop](https://github.com/ScoopInstaller/Extras/pull/12583) are pending.
 
 In the interim, the following steps will download and install the latest version of the CLI to ~\Determined and add the folder to your path:
 
