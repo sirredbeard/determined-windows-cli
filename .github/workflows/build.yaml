@@ -67,19 +67,31 @@ jobs:
         pip install pyinstaller
       shell: powershell        
 
-    - name: Build executable
+    - name: Build linked executable
       if: env.SKIP != 'true'
       run: |
         Set-Location -Path determined/harness/determined/cli
         pyinstaller --name det.exe __main__.py
       shell: powershell
 
-    - name: Create zip file
+    - name: Create zip file of linked executable
       if: env.SKIP != 'true'
       run: |
         Set-Location -Path determined/harness/determined/cli/dist/det.exe/
         Compress-Archive -Path * -DestinationPath determined-cli.zip
+        Move-Item -Path determined-cli.zip -Destination ../../../../../
+        ls ../../../../../
       shell: powershell
+
+    - name: Build static executable
+      if: env.SKIP != 'true'
+      run: |
+        Set-Location -Path determined/harness/determined/cli/
+        Remove-Item -Path dist -Recurse -Force
+        pyinstaller --name det.exe __main__.py --onefile
+        Move-Item -Path dist/det.exe -Destination ../../../
+        ls ../../../
+      shell: powershell 
 
     - name: Create GitHub Release
       id: create_release
@@ -94,13 +106,24 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Upload Release Asset
+    - name: Upload zip file of linked executable
       if: env.SKIP != 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: determined/harness/determined/cli/dist/det.exe/determined-cli.zip
+        asset_path: determined/determined-cli.zip
         asset_name: determined-cli.zip
-        asset_content_type: application/zip        
+        asset_content_type: application/zip
+
+    - name: Upload exe file of static executable
+      if: env.SKIP != 'true'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: determined/det.exe
+        asset_name: det.exe
+        asset_content_type: application/exe

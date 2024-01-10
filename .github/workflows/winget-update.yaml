@@ -15,4 +15,6 @@ jobs:
 
     - name: Update Winget Manifest
       run: |
-        .\wingetcreate.exe update --submit "Determined AI" --token "${{ secrets.WINGET_TOKEN }}" -urls ${{ github.event.release.zipball_url }} --version ${{ github.event.release.tag_name }} DeterminedAI.CLI
+        $assets = '${{ toJson(github.event.release.assets) }}' | ConvertFrom-Json
+        $url = ($assets | Where-Object { $_.name -eq "det.exe" }).browser_download_url
+        .\wingetcreate.exe update --submit "Determined AI" --token "${{ secrets.WINGET_TOKEN }}" -urls $url --version ${{ github.event.release.tag_name }} DeterminedAI.CLI
