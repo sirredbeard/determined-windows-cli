@@ -77,7 +77,6 @@ jobs:
         Set-Location -Path determined/harness/determined/cli/dist/det.exe/
         Compress-Archive -Path * -DestinationPath determined-cli.zip
         Move-Item -Path determined-cli.zip -Destination ../../../../../
-        ls ../../../../../
       shell: powershell
 
     - name: Build static executable
@@ -87,7 +86,6 @@ jobs:
         Remove-Item -Path dist -Recurse -Force
         pyinstaller --name det.exe __main__.py --onefile
         Move-Item -Path dist/det.exe -Destination ../../../
-        ls ../../../
       shell: powershell 
 
     - name: Create GitHub Release
