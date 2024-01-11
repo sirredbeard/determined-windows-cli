@@ -15,9 +15,19 @@ This project is primarily a GitHub Actions workflow that:
 
 ## Installation
 
-PRs for inclusion in [winget](https://github.com/microsoft/winget-pkgs/pull/133585) and [Scoop](https://github.com/ScoopInstaller/Extras/pull/12583) are pending.
+### winget 
 
-In the interim, the following steps will download and install the latest version of the CLI to ~\Determined and add the folder to your path:
+```powershell
+winget install DeterminedAI.CLI
+```
+
+### Scoop
+
+PR for inclusion in [Scoop](https://github.com/ScoopInstaller/Extras/pull/12583) is pending.
+
+### Manual
+
+The following steps will download and install the latest version of the CLI to ~\Determined and add the folder to your path:
 
 ```powershell
 $response = Invoke-RestMethod -Uri $latestReleaseUrl
