@@ -43,7 +43,6 @@ jobs:
           Write-Host "New release found"
           echo "SKIP=false" >> $env:GITHUB_ENV
         }
-        echo "LATEST_TAG=$($latestDetermined.tag_name)"
         echo "LATEST_TAG=$($latestDetermined.tag_name)" >> $env:GITHUB_ENV
       shell: powershell  
 
