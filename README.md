@@ -23,7 +23,9 @@ winget install DeterminedAI.CLI
 
 ### Scoop
 
-PR for inclusion in [Scoop](https://github.com/ScoopInstaller/Extras/pull/12583) is pending.
+```powershell
+scoop install determined
+```
 
 ### Manual
 
